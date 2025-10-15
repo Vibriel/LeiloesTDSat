@@ -1,5 +1,4 @@
 
-import java.util.ArrayList;
 import javax.swing.table.DefaultTableModel;
 
 /*
@@ -11,6 +10,11 @@ import javax.swing.table.DefaultTableModel;
  *
  * @author Adm
  */
+
+import java.util.List;
+import javax.swing.JOptionPane;
+
+
 public class listagemVIEW extends javax.swing.JFrame {
 
     /**
@@ -136,17 +140,37 @@ public class listagemVIEW extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnVenderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVenderActionPerformed
-        String id = id_produto_venda.getText();
+        String idText = id_produto_venda.getText().trim();
+    
+    if (idText.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Por favor, insira o ID do produto a ser vendido.", "Aviso", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+
+    try {
+        int id = Integer.parseInt(idText);
         
         ProdutosDAO produtosdao = new ProdutosDAO();
+        boolean sucesso = produtosdao.venderProduto(id); // Chama o novo método DAO
         
-        //produtosdao.venderProduto(Integer.parseInt(id));
-        listarProdutos();
+        if (sucesso) {
+            JOptionPane.showMessageDialog(this, "Produto vendido com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+            listarProdutos(); // Recarrega a lista para mostrar o produto como "Vendido"
+            id_produto_venda.setText(""); // Limpa o campo
+        } else {
+            JOptionPane.showMessageDialog(this, "Falha ao vender o produto. ID não encontrado ou erro no banco.", "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+        
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(this, "O ID deve ser um número válido.", "Erro de Entrada", JOptionPane.WARNING_MESSAGE);
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, "Erro inesperado ao vender: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+    }
     }//GEN-LAST:event_btnVenderActionPerformed
 
     private void btnVendasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVendasActionPerformed
-        //vendasVIEW vendas = new vendasVIEW(); 
-        //vendas.setVisible(true);
+         vendasVIEW vendas = new vendasVIEW(); 
+    vendas.setVisible(true);
     }//GEN-LAST:event_btnVendasActionPerformed
 
     private void btnVoltarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVoltarActionPerformed
@@ -187,6 +211,7 @@ public class listagemVIEW extends javax.swing.JFrame {
             }
         });
     }
+    
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnVendas;
@@ -201,14 +226,15 @@ public class listagemVIEW extends javax.swing.JFrame {
     private javax.swing.JTable listaProdutos;
     // End of variables declaration//GEN-END:variables
 
-    private void listarProdutos(){
+ private void listarProdutos(){
         try {
             ProdutosDAO produtosdao = new ProdutosDAO();
             
             DefaultTableModel model = (DefaultTableModel) listaProdutos.getModel();
-            model.setNumRows(0);
+            model.setNumRows(0); // Limpa as linhas existentes
             
-            ArrayList<ProdutosDTO> listagem = produtosdao.listarProdutos();
+            // Note: O ProdutosDAO deve retornar List ou ArrayList de ProdutosDTO
+            List<ProdutosDTO> listagem = produtosdao.listarProdutos();
             
             for(int i = 0; i < listagem.size(); i++){
                 model.addRow(new Object[]{
@@ -219,7 +245,8 @@ public class listagemVIEW extends javax.swing.JFrame {
                 });
             }
         } catch (Exception e) {
+            // Tratamento de erro aprimorado
+            JOptionPane.showMessageDialog(this, "Erro ao carregar a listagem: " + e.getMessage(), "Erro de Banco de Dados", JOptionPane.ERROR_MESSAGE);
         }
-    
     }
 }
